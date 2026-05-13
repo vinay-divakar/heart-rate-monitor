@@ -1,0 +1,19 @@
+config XD58C
+    bool "XD-58C pulse sensor driver"
+    depends on ADC
+    select ADC_ASYNC
+    help
+      Enable driver for the XD-58C optical pulse sensor.
+      Provides continuous async ADC sampling, LPF, peak
+      detection, BPM calculation and real-time data output.
+
+if XD58C
+
+config XD58C_LOG_LEVEL
+    int "XD-58C log level"
+    default 3
+    range 0 4
+    help
+      0=OFF 1=ERR 2=WRN 3=INF 4=DBG
+
+endif # XD58C
