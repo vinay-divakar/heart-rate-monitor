@@ -22,3 +22,7 @@
 		zephyr,oversampling = <4>;
 	};
 };
+
+&uart0 {
+	current-speed = <1000000>;
+};
