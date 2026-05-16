@@ -56,5 +56,14 @@ RUN mkdir -p /workdir
 # Set working directory
 WORKDIR /workdir
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# Make executable
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Use entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
 # Default shell
 CMD ["/bin/bash"]
