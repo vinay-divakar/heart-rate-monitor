@@ -69,8 +69,6 @@ static void uart_send_sample(int16_t raw) {
 }
 
 int main(void) {
-  int err;
-
   LOG_INF("Heart Rate Monitor %s", APP_VERSION_STRING);
 
   if (!device_is_ready(_this.uart)) {
@@ -80,7 +78,7 @@ int main(void) {
 
   k_sem_init(&_this.tx_sem, 0, 1);
 
-  err = uart_callback_set(_this.uart, uart_tx_callback, NULL);
+  int err = uart_callback_set(_this.uart, uart_tx_callback, NULL);
   if (err) {
     LOG_ERR("uart_callback_set (err %d)", err);
     return err;
