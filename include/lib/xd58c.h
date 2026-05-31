@@ -9,13 +9,10 @@
 
 #if defined(CONFIG_XD58C)
 int xd58c_init(void);
-int xd58c_start(void);
-void xd58c_callback_set(adc_sequence_callback callback, void *user_data);
+int xd58c_process(void);
 #else
 static inline int xd58c_init(void) { return -ENOTSUP; }
-static inline int xd58c_start(void) { return -ENOTSUP; }
-static inline void xd58c_callback_set(adc_sequence_callback callback,
-                                      void *user_data) {}
+static inline int xd58c_process(void) { return -ENOTSUP; }
 #endif /* CONFIG_XD58C */
 
 #endif /* XD58C_H_ */
