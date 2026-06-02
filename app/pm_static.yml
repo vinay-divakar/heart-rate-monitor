@@ -1,0 +1,25 @@
+mcuboot:
+  address: 0x0
+  size: 0xc000
+mcuboot_pad:
+  address: 0xc000
+  size: 0x200
+mcuboot_primary:
+  address: 0xc000
+  orig_span: &id001
+  - mcuboot_pad
+  - app
+  size: 0x7a000
+  span: *id001
+mcuboot_primary_app:
+  address: 0xc200
+  orig_span: &id002
+  - app
+  size: 0x79e00
+  span: *id002
+app:
+  address: 0xc200
+  size: 0x79e00
+mcuboot_secondary:
+  address: 0x86000
+  size: 0x7a000
