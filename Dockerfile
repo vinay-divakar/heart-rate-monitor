@@ -37,9 +37,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++-multilib \
     libsdl2-dev \
     ca-certificates \
+    ruby \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
 # -----------------------------------------------------------------------------
 # Install Zephyr SDK
 # -----------------------------------------------------------------------------
@@ -71,7 +71,16 @@ RUN pip install --no-cache-dir \
     -r https://raw.githubusercontent.com/nrfconnect/sdk-nrf/v3.2.0/scripts/requirements.txt \
     -r https://raw.githubusercontent.com/nrfconnect/sdk-mcuboot/ncs-v3.2.0/scripts/requirements.txt \
     pyelftools \
-    intelhex
+    intelhex \
+    tabulate \
+    junitparser \
+    psutil \
+    pyyaml \
+    pytest \
+    pyserial \
+    anytree \
+    ply \
+    natsort
 
 # -----------------------------------------------------------------------------
 # Create workspace directory

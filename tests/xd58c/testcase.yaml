@@ -1,0 +1,8 @@
+# Minimal Zephyr test metadata for the xd58c tests
+common:
+  tags: drivers heart_rate
+tests:
+  drivers.xd58c.unit_test:
+    platform_allow: native_sim
+    integration_platforms:
+      - native_sim
