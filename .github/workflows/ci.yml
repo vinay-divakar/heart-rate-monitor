@@ -71,7 +71,7 @@ jobs:
         if: steps.cache-west.outputs.cache-hit != 'true'
         run: |
           west init -l .
-          west update -o=--depth=1
+          west update --narrow
 
       - name: Build (MCUboot + app)
         run: |
