@@ -55,6 +55,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Mark workspace as git safe
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Write signing key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.SIGNING_KEY_PEM }}" > keys/heart-rate-ec-p256-dev.pem
+
       - name: Cache west workspace
         id: cache-west
         uses: actions/cache@v4
