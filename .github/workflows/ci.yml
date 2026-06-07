@@ -61,7 +61,7 @@ jobs:
       - name: Write signing key
         run: |
           mkdir -p keys
-          echo "${{ secrets.SIGNING_KEY_PEM }}" > keys/heart-rate-ec-p256-dev.pem
+          echo "${{ secrets.MCUBOOT_SIGNING_KEY_PEM }}" > keys/heart-rate-ec-p256-dev.pem
 
       - name: Cache west workspace
         id: cache-west
