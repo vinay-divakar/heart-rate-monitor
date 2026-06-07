@@ -66,23 +66,23 @@ jobs:
           mkdir -p keys
           echo "${{ secrets.MCUBOOT_SIGNING_KEY_PEM }}" > keys/heart-rate-ec-p256-dev.pem
 
-      - name: Cache west workspace
+      - name: Initialize west workspace
+        run: west init -l . 2>/dev/null || true
+
+      - name: Cache west modules
         id: cache-west
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/zephyr
-            ${{ github.workspace }}/nrf
-            ${{ github.workspace }}/bootloader
-            ${{ github.workspace }}/modules
-            ${{ github.workspace }}/.west
+            ${{ github.workspace }}/../zephyr
+            ${{ github.workspace }}/../nrf
+            ${{ github.workspace }}/../bootloader
+            ${{ github.workspace }}/../modules
           key: west-ncs-v3.2.0-${{ hashFiles('west.yml') }}
 
-      - name: Initialize & update west workspace
+      - name: Update west workspace
         if: steps.cache-west.outputs.cache-hit != 'true'
-        run: |
-          west init -l .
-          west update --narrow
+        run: west update --narrow
 
       - name: Build (MCUboot + app)
         run: |
