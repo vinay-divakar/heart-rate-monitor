@@ -80,7 +80,7 @@ jobs:
             --sysbuild \
             app \
             -- \
-            -DSB_CONFIG_BOOT_SIGNATURE_KEY_FILE="${GITHUB_WORKSPACE}/keys/heart-rate-ec-p256-dev.pem" \
+            -DSB_CONFIG_BOOT_SIGNATURE_KEY_FILE="\"${GITHUB_WORKSPACE}/keys/heart-rate-ec-p256-dev.pem\"" \
             -Dapp_CONFIG_COMPILER_WARNINGS_AS_ERRORS=y
 
       - name: Run unit tests
