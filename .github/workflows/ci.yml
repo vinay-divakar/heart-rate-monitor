@@ -108,3 +108,4 @@ jobs:
         with:
           name: test-results
           path: artifacts/
+          retention-days: 7
