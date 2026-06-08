@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build and push the build environment image to GHCR.
+  # Layer cache (type=gha) makes this ~30 s when the Dockerfile is unchanged.
+  # ---------------------------------------------------------------------------
+  docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/build-env:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # Build the firmware (MCUboot + app via sysbuild) and run unit tests.
+  # Warnings in app code are treated as errors; scoped to the app domain only
+  # so MCUboot upstream warnings do not break the build.
+  # West workspace is cached by west.yml hash to avoid re-downloading NCS.
+  # ---------------------------------------------------------------------------
+  build-and-test:
+    name: Build & Test
+    needs: docker
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/build-env:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Mark workspace as git safe
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Write signing key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.MCUBOOT_SIGNING_KEY_PEM }}" > keys/heart-rate-ec-p256-dev.pem
+
+      - name: Initialize west workspace
+        run: west init -l . 2>/dev/null || true
+
+      - name: Cache west modules
+        id: cache-west
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/../zephyr
+            ${{ github.workspace }}/../nrf
+            ${{ github.workspace }}/../bootloader
+            ${{ github.workspace }}/../modules
+          key: west-ncs-v3.2.0-${{ hashFiles('west.yml') }}
+
+      - name: Update west workspace
+        if: steps.cache-west.outputs.cache-hit != 'true'
+        run: west update --narrow
+
+      - name: Build (MCUboot + app)
+        run: |
+          west build -p always \
+            -b nrf52840dk/nrf52840 \
+            --sysbuild \
+            app \
+            -- \
+            -DSB_CONFIG_BOOT_SIGNATURE_KEY_FILE="\"${GITHUB_WORKSPACE}/keys/heart-rate-ec-p256-dev.pem\"" \
+            -Dapp_CONFIG_COMPILER_WARNINGS_AS_ERRORS=y
+
+      - name: Run unit tests
+        run: |
+          west twister \
+            -T tests/ \
+            --platform native_sim \
+            --inline-logs \
+            --outdir artifacts/
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/
+          retention-days: 7
