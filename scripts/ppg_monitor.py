@@ -12,7 +12,7 @@ applies a bandpass filter + sliding-window autocorrelation, and displays:
 Usage
 -----
   # Live mode  (UART @ 200 Hz, one int16 per line)
-  python ppg_monitor.py --port /dev/ttyUSB0 --baud 115200
+  python ppg_monitor.py --port /dev/ttyUSB0 --baud 1000000
 
   # Replay mode  (simulate live feed from ODS file)
   python ppg_monitor.py --replay ppg_recordings.ods
@@ -518,7 +518,7 @@ def parse_args():
                       help="Serial port, e.g. /dev/ttyUSB0 or COM3")
     mode.add_argument("--replay", metavar="FILE",
                       help="ODS file to replay (uses 'ac_ppg' column)")
-    p.add_argument("--baud",  type=int,   default=115200)
+    p.add_argument("--baud",  type=int,   default=1000000)
     p.add_argument("--speed", type=float, default=1.0,
                    help="Replay speed multiplier (default: 1.0)")
     return p.parse_args()

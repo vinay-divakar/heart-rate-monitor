@@ -136,7 +136,7 @@ Test results are written to `twister-out/twister.xml` (JUnit format).
 
 ```bash
 # Live mode — connect nRF52840 DK via USB and find the port
-python scripts/ppg_monitor.py --port /dev/ttyUSB0 --baud 115200
+python scripts/ppg_monitor.py --port /dev/ttyUSB0 --baud 1000000
 
 # Replay mode — use a saved ODS recording
 python scripts/ppg_monitor.py --replay scripts/ppg_recordings.ods
