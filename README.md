@@ -126,6 +126,32 @@ Test results are written to `twister-out/twister.xml` (JUnit format).
 | **BPM Trend** | Rolling history of up to 30 beat-per-minute estimates plotted as a line graph |
 | **BPM Readout** | Large numeric display coloured by confidence: green ≥ 0.50, amber ≥ 0.15, red < 0.15; a bar beneath shows the raw confidence value |
 
+### UI
+
+**Idle — waiting for START**
+
+![Idle state](docs/ui_idle.png)
+
+On launch the waveform panel shows a flat line with the prompt *"Press ► START to begin measurement"*. The BPM readout is blank and the STOP button is disabled. Press **START** (green button) to open the serial port and begin streaming.
+
+---
+
+**Early acquisition — BPM trend building**
+
+![Early running state](docs/ui_running_early.png)
+
+A few seconds after pressing START, the filtered PPG waveform (green) and raw signal (blue) scroll across the top panel. Detected heartbeats are marked with orange dots. The BPM Trend chart shows the first few autocorrelation windows, and the large readout on the right updates with the current estimate (77 BPM here) along with a confidence bar.
+
+---
+
+**Steady state — full trend history**
+
+![Steady running state](docs/ui_running_steady.png)
+
+After ~30 windows (~15 s) the BPM Trend fills out into a continuous history. Beat detection is stable, the confidence score (0.66–0.68) is consistent, and the readout colour remains green. Press **STOP** (red button) to halt acquisition and reset all plots.
+
+---
+
 ### Algorithm
 
 1. **Bandpass filter** — 4th-order Butterworth, 0.7–3.5 Hz, applied with `filtfilt` (zero phase).
