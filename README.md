@@ -222,7 +222,7 @@ GitHub Actions runs on every pull request and push to `main`.
 | Job | Runs when | What it does |
 |-----|-----------|--------------|
 | `changes` | Every push and pull request | Detects whether the `Dockerfile` changed |
-| `docker` | `Dockerfile` changed | Builds and pushes the build-env image to Docker Hub and GHCR |
+| `docker` | `Dockerfile` changed | Builds and pushes the build-env image to Docker Hub |
 | `build-and-test` | Always (after `docker` succeeds or is skipped) | Runs inside the build-env container: initializes the west workspace (cached), builds firmware with warnings-as-errors, runs Twister unit tests, uploads `artifacts/` |
 
 The signing key (`MCUBOOT_SIGNING_KEY_PEM`) must be set as a GitHub repository secret.
