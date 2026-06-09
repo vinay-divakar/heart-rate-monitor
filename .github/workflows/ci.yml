@@ -10,11 +10,31 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Build and push the build environment image to GHCR.
-  # Layer cache (type=gha) makes this ~30 s when the Dockerfile is unchanged.
+  # Detect which files changed so downstream jobs can run conditionally.
+  # ---------------------------------------------------------------------------
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      dockerfile: ${{ steps.filter.outputs.dockerfile }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'Dockerfile'
+
+  # ---------------------------------------------------------------------------
+  # Only runs when the Dockerfile changes. Builds and pushes the build-env
+  # image to both Docker Hub and GHCR.
   # ---------------------------------------------------------------------------
   docker:
-    name: Build Docker image
+    name: Build and push image
+    needs: changes
+    if: needs.changes.outputs.dockerfile == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,29 +50,35 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/build-env:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/build-env:latest
+            vinaydivakar/heart-rate-build-env:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # ---------------------------------------------------------------------------
   # Build the firmware (MCUboot + app via sysbuild) and run unit tests.
+  # Runs if docker succeeded (Dockerfile changed) or was skipped (unchanged).
   # Warnings in app code are treated as errors; scoped to the app domain only
   # so MCUboot upstream warnings do not break the build.
   # West workspace is cached by west.yml hash to avoid re-downloading NCS.
   # ---------------------------------------------------------------------------
   build-and-test:
     name: Build & Test
-    needs: docker
+    needs: [changes, docker]
+    if: always() && needs.changes.result == 'success' && (needs.docker.result == 'success' || needs.docker.result == 'skipped')
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}/build-env:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      image: vinaydivakar/heart-rate-build-env:latest
 
     steps:
       - name: Checkout
@@ -69,15 +95,18 @@ jobs:
       - name: Initialize west workspace
         run: west init -l . 2>/dev/null || true
 
+      - name: Set west root
+        run: echo "WEST_ROOT=$(dirname ${GITHUB_WORKSPACE})" >> $GITHUB_ENV
+
       - name: Cache west modules
         id: cache-west
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/../zephyr
-            ${{ github.workspace }}/../nrf
-            ${{ github.workspace }}/../bootloader
-            ${{ github.workspace }}/../modules
+            ${{ env.WEST_ROOT }}/zephyr
+            ${{ env.WEST_ROOT }}/nrf
+            ${{ env.WEST_ROOT }}/bootloader
+            ${{ env.WEST_ROOT }}/modules
           key: west-ncs-v3.2.0-${{ hashFiles('west.yml') }}
 
       - name: Update west workspace

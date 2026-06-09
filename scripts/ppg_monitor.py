@@ -1,6 +1,6 @@
 """
-PPG Real-Time Heart Rate Monitor
-=================================
+PPG Heart Rate Monitor
+======================
 Reads AC samples from a serial port (or replays an ODS file for testing),
 applies a bandpass filter + sliding-window autocorrelation, and displays:
   • Live PPG waveform (raw + filtered)
@@ -12,13 +12,13 @@ applies a bandpass filter + sliding-window autocorrelation, and displays:
 Usage
 -----
   # Live mode  (UART @ 200 Hz, one int16 per line)
-  python ppg_realtime.py --port /dev/ttyUSB0 --baud 115200
+  python ppg_monitor.py --port /dev/ttyUSB0 --baud 1000000
 
   # Replay mode  (simulate live feed from ODS file)
-  python ppg_realtime.py --replay data.ods
+  python ppg_monitor.py --replay ppg_recordings.ods
 
   # Replay at a custom speed multiplier (e.g. 2x faster)
-  python ppg_realtime.py --replay data.ods --speed 2
+  python ppg_monitor.py --replay ppg_recordings.ods --speed 2
 
 Dependencies
 ------------
@@ -29,7 +29,8 @@ Firmware assumptions
   fs = 200 Hz  (5 ms sampling interval)
   SHIFT = 6    -> HPF cutoff ~0.50 Hz (below cardiac band floor of 0.7 Hz)
   UART format: one signed integer per line, e.g. "-42\n"
-  Col 0 of the ODS file is the raw ADC channel (higher amplitude, better SNR).
+  ODS column "ac_ppg"  — firmware IIR HPF output (AC-coupled PPG, small amplitude).
+  ODS column "raw_adc" — raw ADC reading before any firmware filtering (DC-coupled).
 """
 
 import argparse
@@ -166,8 +167,9 @@ class ReplaySource:
 
     def __init__(self, path, speed=1.0):
         import pandas as pd
-        df = pd.read_excel(path, engine="odf", header=None)
-        self._data     = df[0].dropna().values.astype(float)
+        df = pd.read_excel(path, engine="odf", header=0)
+        col = "ac_ppg" if "ac_ppg" in df.columns else df.columns[0]
+        self._data     = df[col].dropna().values.astype(float)
         self._speed    = speed
         self._interval = 1.0 / (FS * speed)
         self._idx      = 0
@@ -515,8 +517,8 @@ def parse_args():
     mode.add_argument("--port",   metavar="PORT",
                       help="Serial port, e.g. /dev/ttyUSB0 or COM3")
     mode.add_argument("--replay", metavar="FILE",
-                      help="ODS file to replay (uses col 0, raw ADC)")
-    p.add_argument("--baud",  type=int,   default=115200)
+                      help="ODS file to replay (uses 'ac_ppg' column)")
+    p.add_argument("--baud",  type=int,   default=1000000)
     p.add_argument("--speed", type=float, default=1.0,
                    help="Replay speed multiplier (default: 1.0)")
     return p.parse_args()
