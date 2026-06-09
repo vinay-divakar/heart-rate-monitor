@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ninja-build \
     gperf \
     ccache \
-    dfu-util \
     device-tree-compiler \
     wget \
     curl \
@@ -28,14 +27,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-setuptools \
     python3-wheel \
-    python3-tk \
     xz-utils \
     file \
     make \
     gcc \
     gcc-multilib \
     g++-multilib \
-    libsdl2-dev \
     ca-certificates \
     ruby \
     && apt-get clean \
