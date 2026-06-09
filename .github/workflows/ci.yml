@@ -95,15 +95,18 @@ jobs:
       - name: Initialize west workspace
         run: west init -l . 2>/dev/null || true
 
+      - name: Set west root
+        run: echo "WEST_ROOT=$(dirname ${GITHUB_WORKSPACE})" >> $GITHUB_ENV
+
       - name: Cache west modules
         id: cache-west
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/../zephyr
-            ${{ github.workspace }}/../nrf
-            ${{ github.workspace }}/../bootloader
-            ${{ github.workspace }}/../modules
+            ${{ env.WEST_ROOT }}/zephyr
+            ${{ env.WEST_ROOT }}/nrf
+            ${{ env.WEST_ROOT }}/bootloader
+            ${{ env.WEST_ROOT }}/modules
           key: west-ncs-v3.2.0-${{ hashFiles('west.yml') }}
 
       - name: Update west workspace
