@@ -43,10 +43,10 @@ dts/bindings/   Custom devicetree bindings
 
 ## Local development setup
 
-Build the Docker image (one-time):
+Pull the pre-built image (one-time):
 
 ```bash
-docker build -t heart-rate-build-env .
+docker pull vinaydivakar/heart-rate-build-env:latest
 ```
 
 Start a shell inside the container, mounting the workspace:
@@ -54,7 +54,7 @@ Start a shell inside the container, mounting the workspace:
 ```bash
 docker run --rm -it \
   -v /path/to/heart-rate-workspace:/workdir \
-  heart-rate-build-env
+  vinaydivakar/heart-rate-build-env:latest
 ```
 
 Inside the container, initialize the west workspace (one-time):
@@ -219,10 +219,11 @@ Two-subject ODS recording captured from the nRF52840 DK + XD58C sensor at 200 Hz
 
 GitHub Actions runs on every pull request and push to `main`.
 
-| Job | What it does |
-|-----|--------------|
-| `docker` | Builds and pushes the build-env image to GHCR (layer-cached) |
-| `build-and-test` | Runs inside the build-env container: initializes the west workspace (cached), builds firmware with warnings-as-errors, runs Twister unit tests, uploads `artifacts/` |
+| Job | Runs when | What it does |
+|-----|-----------|--------------|
+| `changes` | Every push and pull request | Detects whether the `Dockerfile` changed |
+| `docker` | `Dockerfile` changed | Builds and pushes the build-env image to Docker Hub and GHCR |
+| `build-and-test` | Always (after `docker` succeeds or is skipped) | Runs inside the build-env container: initializes the west workspace (cached), builds firmware with warnings-as-errors, runs Twister unit tests, uploads `artifacts/` |
 
 The signing key (`MCUBOOT_SIGNING_KEY_PEM`) must be set as a GitHub repository secret.
 
